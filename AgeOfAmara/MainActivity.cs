@@ -14,8 +14,17 @@ namespace AgeOfAmara
     [Activity(Label = "@string/app_name", Theme = "@style/AppTheme.NoActionBar", MainLauncher = true)]
     public class MainActivity : AppCompatActivity
     {
+
+        /*
+         * -Age on other planets
+         * -Age in dog years
+         * -Time spent ____ (based on averages)
+         */
+        private const double daysInAYear = 365.25;
+
         //https://docs.microsoft.com/en-us/xamarin/android/get-started/installation/android-emulator/device-manager?tabs=windows&pivots=windows
         private Timer timer;
+
         protected override void OnCreate(Bundle savedInstanceState)
         {
             base.OnCreate(savedInstanceState);
@@ -44,67 +53,95 @@ namespace AgeOfAmara
             base.OnResume();
             CalculateBirthdayInfo();
         }
+
         private void CalculateBirthdayInfo()
         {
             var mainText = FindViewById<TextView>(Resource.Id.main_text);
 
-            var birthday = new DateTime(2017, 12, 17, 23, 57, 00);
-            var nextBirthday = new DateTime(DateTime.Now.Year, 12, 17, 23, 57, 00);
-            var lastBirthday = new DateTime(DateTime.Now.Year - 1, 12, 17, 23, 57, 00);
+            const int birthYear = 2017;
+            const int birthMonth = 12;
+            const int birthDayOfTheMonth = 17;
+            const int birthHour = 23; //24 hour time
+            const int birthMinute = 57;
+            const int birthSecond = 00;
 
+            const string name = "Amara Riley Ikeda";
+
+            mainText.Text = GetDisplayText(name,
+                new DateTime(birthYear, birthMonth, birthDayOfTheMonth, birthHour, birthMinute, birthSecond));
+        }
+
+        private static string GetDisplayText(string name, DateTime birthday)
+        {
             var now = DateTime.Now;
+            var nextBirthday = new DateTime(DateTime.Now.Year, birthday.Month, birthday.Day, birthday.Hour,
+                birthday.Minute, birthday.Second);
+            var lastBirthday = new DateTime(DateTime.Now.Year - 1, birthday.Month, birthday.Day, birthday.Hour,
+                birthday.Minute, birthday.Second);
 
-            mainText.Text = "Amara Riley Ikeda" + "\n"
-                                                + birthday.ToString("dddd, MMMM")
-                                                + birthday.ToString(" dd") + GetDaySuffix(birthday.Day)
-                                                + birthday.ToString(", yyyy") + "\n"
-                                                + birthday.ToString("hh:mm:ss tt") + "\n" + "\n" +
-                                                $"{CalculateYourAge(birthday)}" + "\n" +
-                                                "\n" +
-                                                "Year of the Rooster" + "\n" +
-                                                "Sagittarius: The Archer" + "\n" +
-                                                "\n" +
-                                                $"Age in Months: {Convert.ToInt32(now.Subtract(birthday).Days / (365.25 / 12)):N0}" +
-                                                "\n" +
-                                                $"Age in Weeks: {Convert.ToInt32((now - birthday).TotalDays / 7):N0}" +
-                                                "\n" +
-                                                $"Age in Days: {Convert.ToInt32((now - birthday).TotalDays):N0}" +
-                                                "\n" +
-                                                $"Age in Hours: {Convert.ToInt32((now - birthday).TotalHours):N0}" +
-                                                "\n" +
-                                                $"Age in Minutes: {Convert.ToInt32((now - birthday).TotalMinutes):N0}" +
-                                                "\n" +
-                                                $"Age in Seconds: {Convert.ToInt32((now - birthday).TotalSeconds):N0}" +
-                                                "\n" +
-                                                "\n" +
-                                                $"Days since last birthday: {Convert.ToInt32((now - lastBirthday).TotalDays)}" +
-                                                "\n" +
-                                                "\n" +
-                                                $"Days until next birthday: {Convert.ToInt32((nextBirthday - now).TotalDays)}" + "\n" +
-                                                $"Next birthday day of the week:{nextBirthday:dddd}"+ "\n" +
-                                                $"Year % Complete: {((now - lastBirthday).TotalDays/365)*100:N8}%";
+            var halfBirthday = lastBirthday.AddDays(daysInAYear / 2);
+
+            if (DateTime.Now > nextBirthday)
+            {
+                //Birthday has passed for current year
+                halfBirthday = nextBirthday.AddDays(daysInAYear / 2);
+                lastBirthday = lastBirthday.AddYears(1);
+                nextBirthday = nextBirthday.AddYears(1);
+            }
+
+
+            return name
+                   + "\n"
+                   + birthday.ToString("dddd, MMMM")
+                   + birthday.ToString(" dd") + GetDaySuffix(birthday.Day)
+                   + birthday.ToString(", yyyy") + "\n"
+                   + birthday.ToString("hh:mm:ss tt") + "\n" + "\n" +
+                   $"{CalculateYourAge(birthday)}" + "\n" +
+                   "\n" +
+                   $"Year of the {GetChineseZodiacAnimal(birthday.Year)}" + "\n" +
+                   $"{GetZodiacSign(birthday)}" + "\n" +
+                   "\n" +
+                   "Age:" +
+                   "\n" +
+                   $"Years: {Convert.ToDouble((now - birthday).TotalDays / daysInAYear):N3}" +
+                   "\n" +
+                   $"Months: {Convert.ToDouble(now.Subtract(birthday).Days / (daysInAYear / 12)):N1}" +
+                   "\n" +
+                   $"Weeks: {Convert.ToDouble((now - birthday).TotalDays / 7):N1}" +
+                   "\n" +
+                   $"Days: {Convert.ToDouble((now - birthday).TotalDays):N1}" +
+                   "\n" +
+                   $"Hours: {Convert.ToDouble((now - birthday).TotalHours):N1}" +
+                   "\n" +
+                   $"Minutes: {Convert.ToDouble((now - birthday).TotalMinutes):N1}" +
+                   "\n" +
+                   $"Seconds: {Convert.ToDouble((now - birthday).TotalSeconds):N1}" +
+                   "\n" +
+                   "\n" +
+                   $"Days since last birthday: {Convert.ToDouble((now - lastBirthday).TotalDays):N1}" +
+                   "\n" +
+                   $"Half birthday: {halfBirthday}" +
+                   "\n" +
+                   "\n" +
+                   $"Days until next birthday: {Convert.ToDouble((nextBirthday - now).TotalDays):N1}" + "\n" +
+                   $"Next birthday day of the week: {nextBirthday:dddd}" + "\n" +
+                   $"% of year: {(now - lastBirthday).TotalDays / daysInAYear * 100:N8}%";
         }
 
         private static string GetDaySuffix(int day)
         {
-            switch (day)
+            return day switch
             {
-                case 1:
-                case 21:
-                case 31:
-                    return "st";
-                case 2:
-                case 22:
-                    return "nd";
-                case 3:
-                case 23:
-                    return "rd";
-                default:
-                    return "th";
-            }
+                1 => "st",
+                21 => "st",
+                31 => "st",
+                2 => "nd",
+                22 => "nd",
+                3 => "rd",
+                23 => "rd",
+                _ => "th"
+            };
         }
-
-
 
         private static string CalculateYourAge(DateTime dob)
         {
@@ -124,42 +161,123 @@ namespace AgeOfAmara
                 months = i - 1;
                 break;
             }
+
             var days = now.Subtract(pastYearDate.AddMonths(months)).Days;
             var hours = now.Subtract(pastYearDate).Hours;
             var minutes = now.Subtract(pastYearDate).Minutes;
 
-            var yearPluralMod = years != 1 ? "s" : "";
-            var monthPluralMod = months != 1 ? "s" : "";
-            var dayPluralMod = days != 1 ? "s" : "";
-            var hourPluralMod = hours != 1 ? "s" : "";
-            var minutePluralMod = minutes != 1 ? "s" : "";
-
-            return $"{years} year{yearPluralMod}, {months} month{monthPluralMod}, {days} day{dayPluralMod}, {hours} hour{hourPluralMod}, {minutes} minute{minutePluralMod}";
+            return
+                $"{years} year{IsPluralString(years)}, {months} month{IsPluralString(months)}, {days} day{IsPluralString(days)}, {hours} hour{IsPluralString(hours)}, {minutes} minute{IsPluralString(minutes)}";
         }
 
-        //public override bool OnCreateOptionsMenu(IMenu menu)
-        //{
-        //    MenuInflater.Inflate(Resource.Menu.menu_main, menu);
-        //    return true;
-        //}
+        private static string IsPluralString(int value)
+        {
+            return value != 1 ? "s" : "";
+        }
 
-        //public override bool OnOptionsItemSelected(IMenuItem item)
-        //{
-        //    int id = item.ItemId;
-        //    if (id == Resource.Id.action_settings)
-        //    {
-        //        return true;
-        //    }
+        private static string GetChineseZodiacAnimal(int birthYear)
+        {
+            if ((birthYear - 1924) % 12 == 0)
+                return "Rat";
+            if ((birthYear - 1925) % 12 == 0)
+                return "Ox";
+            if ((birthYear - 1926) % 12 == 0)
+                return "Tiger";
+            if ((birthYear - 1927) % 12 == 0)
+                return "Rabbit";
+            if ((birthYear - 1928) % 12 == 0)
+                return "Dragon";
+            if ((birthYear - 1929) % 12 == 0)
+                return "Snake";
+            if ((birthYear - 1930) % 12 == 0)
+                return "Horse";
+            if ((birthYear - 1931) % 12 == 0)
+                return "Goat";
+            if ((birthYear - 1932) % 12 == 0)
+                return "Monkey";
+            if ((birthYear - 1933) % 12 == 0)
+                return "Rooster";
+            if ((birthYear - 1934) % 12 == 0)
+                return "Dog";
+            return (birthYear - 1945) % 12 == 0 ? "Pig" : "?";
+        }
 
-        //    return base.OnOptionsItemSelected(item);
-        //}
+        private static string GetZodiacSign(DateTime birthday)
+        {
+            var signDateStart = new DateTime(birthday.Year, 1, 20);
+            var signDateEnd = new DateTime(birthday.Year, 2, 18);
 
-        //private void FabOnClick(object sender, EventArgs eventArgs)
-        //{
-        //    View view = (View) sender;
-        //    Snackbar.Make(view, "Replace with your own action", Snackbar.LengthLong)
-        //        .SetAction("Action", (Android.Views.View.IOnClickListener)null).Show();
-        //}
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Aquarius";
+
+            signDateStart = new DateTime(birthday.Year, 2, 19);
+            signDateEnd = new DateTime(birthday.Year, 3, 20);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Pisces";
+
+            signDateStart = new DateTime(birthday.Year, 3, 21);
+            signDateEnd = new DateTime(birthday.Year, 4, 19);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Aries";
+
+            signDateStart = new DateTime(birthday.Year, 4, 20);
+            signDateEnd = new DateTime(birthday.Year, 5, 20);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Taurus";
+
+            signDateStart = new DateTime(birthday.Year, 5, 21);
+            signDateEnd = new DateTime(birthday.Year, 6, 20);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Gemini";
+
+            signDateStart = new DateTime(birthday.Year, 6, 21);
+            signDateEnd = new DateTime(birthday.Year, 7, 22);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Cancer";
+
+            signDateStart = new DateTime(birthday.Year, 7, 23);
+            signDateEnd = new DateTime(birthday.Year, 8, 22);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Leo";
+
+            signDateStart = new DateTime(birthday.Year, 8, 23);
+            signDateEnd = new DateTime(birthday.Year, 9, 22);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Virgo";
+
+            signDateStart = new DateTime(birthday.Year, 9, 23);
+            signDateEnd = new DateTime(birthday.Year, 10, 22);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Libra";
+
+            signDateStart = new DateTime(birthday.Year, 10, 23);
+            signDateEnd = new DateTime(birthday.Year, 11, 21);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Scorpio";
+
+            signDateStart = new DateTime(birthday.Year, 11, 22);
+            signDateEnd = new DateTime(birthday.Year, 12, 21);
+
+            if (signDateStart <= birthday && birthday <= signDateEnd)
+                return "Sagittarius";
+
+            //signDateStart = new DateTime(birthday.Year, 11, 22);
+            //signDateEnd = new DateTime(birthday.Year, 12, 21);
+
+            //if (signDateStart <= birthday && birthday <= signDateEnd)
+            return "Capricorn";
+
+            //return "?";
+        }
     }
 }
 
